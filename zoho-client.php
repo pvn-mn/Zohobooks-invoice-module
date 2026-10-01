@@ -7,7 +7,7 @@
  * instead of being refreshed on every request (Zoho limits how many access
  * tokens one refresh token may generate in a short period).
  */
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/config.php';
 
 class ZohoClient {
     private static $accessToken = null;

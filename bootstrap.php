@@ -3,7 +3,7 @@
  * Shared setup loaded by every page: config, database, login session,
  * Zoho customer/item cache, invoice numbering, helpers and page layout.
  */
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/zoho-client.php';
 
 function cfg($name, $default = '') {
