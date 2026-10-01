@@ -22,6 +22,7 @@ page_start('Items', 'items.php');
 <script>
 const tbody = document.querySelector('#list tbody');
 let items = [];
+const pager = makePager(document.getElementById('list'), () => render());
 const fmt = n => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 async function load(refresh) {
@@ -37,7 +38,7 @@ async function load(refresh) {
 function render() {
   const q = document.getElementById('q').value.trim().toLowerCase();
   const rows = items.filter(i => !q || [i.name, i.sku, i.description].join(' ').toLowerCase().includes(q));
-  tbody.replaceChildren(...rows.map(i => {
+  tbody.replaceChildren(...pager.apply(rows).map(i => {
     const tr = el('tr', { className: 'row' },
       el('td', {}, i.name), el('td', {}, i.sku), el('td', {}, i.unit), el('td', { className: 'r' }, fmt(i.rate)));
     tr.addEventListener('click', () => toggleDetail(tr, i));
@@ -56,7 +57,7 @@ function toggleDetail(tr, i) {
   tr.after(el('tr', { className: 'detail' }, el('td', { colSpan: 4 }, dl)));
 }
 
-document.getElementById('q').addEventListener('input', render);
+document.getElementById('q').addEventListener('input', () => { pager.reset(); render(); });
 document.getElementById('refresh').addEventListener('click', () => load(true));
 load(false);
 </script>

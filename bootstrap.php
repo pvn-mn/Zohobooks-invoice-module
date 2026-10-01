@@ -408,6 +408,8 @@ function page_start($title, $active = '') {
   .muted { font-size: .8rem; color: #666; }
   .bar { display: flex; gap: .5rem; align-items: center; margin-bottom: .75rem; }
   .bar input { max-width: 360px; }
+  .pager { display: flex; gap: .75rem; align-items: center; justify-content: flex-end; margin: .5rem 0; }
+  .pager button:disabled { opacity: .5; cursor: default; }
   .badge { font-size: .75rem; padding: .1rem .45rem; border-radius: 999px; }
   .b-synced { background: #dcfce7; } .b-failed { background: #fee2e2; } .b-pending { background: #fef3c7; }
   dl.kv { display: grid; grid-template-columns: max-content 1fr; gap: .2rem 1rem; margin: 0; }
@@ -425,6 +427,28 @@ function el(tag, props = {}, ...children) {
   const e = Object.assign(document.createElement(tag), props);
   e.append(...children.map(c => c ?? ''));
   return e;
+}
+// Pagination under a table. apply(rows) returns the current page's rows and redraws the controls;
+// call reset() when the filter changes so the view goes back to page 1.
+function makePager(table, onChange, perPage = 10) {
+  const nav = el('div', { className: 'pager' });
+  table.after(nav);
+  let page = 1;
+  const go = p => { page = p; onChange(); };
+  return {
+    reset() { page = 1; },
+    apply(rows) {
+      const pages = Math.max(1, Math.ceil(rows.length / perPage));
+      page = Math.min(page, pages);
+      const prev = el('button', { type: 'button', className: 'sec', textContent: '‹ Prev', disabled: page <= 1 });
+      const next = el('button', { type: 'button', className: 'sec', textContent: 'Next ›', disabled: page >= pages });
+      prev.addEventListener('click', () => go(page - 1));
+      next.addEventListener('click', () => go(page + 1));
+      nav.replaceChildren(...(rows.length > perPage
+        ? [prev, el('span', { className: 'muted' }, 'Page ' + page + ' of ' + pages), next] : []));
+      return rows.slice((page - 1) * perPage, page * perPage);
+    },
+  };
 }
 </script>
 </head>

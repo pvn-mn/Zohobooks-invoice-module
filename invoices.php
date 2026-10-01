@@ -583,12 +583,16 @@ $('invform').addEventListener('submit', e => {
 });
 
 // Invoice list search
-$('invq').addEventListener('input', () => {
+const invRows = [...document.querySelectorAll('#invlist tbody tr.row')];
+const invPager = makePager($('invlist'), () => renderInvoices());
+function renderInvoices() {
   const q = $('invq').value.trim().toLowerCase();
-  document.querySelectorAll('#invlist tbody tr.row').forEach(tr => {
-    tr.style.display = !q || tr.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-});
+  const matches = invRows.filter(tr => !q || tr.textContent.toLowerCase().includes(q));
+  const visible = new Set(invPager.apply(matches));
+  invRows.forEach(tr => { tr.style.display = visible.has(tr) ? '' : 'none'; });
+}
+$('invq').addEventListener('input', () => { invPager.reset(); renderInvoices(); });
+renderInvoices();
 
 $('addline').addEventListener('click', () => addRow());
 $('refresh').addEventListener('click', () => loadMasterData(true));

@@ -22,6 +22,7 @@ page_start('Customers', 'customers.php');
 <script>
 const tbody = document.querySelector('#list tbody');
 let customers = [];
+const pager = makePager(document.getElementById('list'), () => render());
 
 async function load(refresh) {
   document.getElementById('status').textContent = 'Loading…';
@@ -36,7 +37,7 @@ async function load(refresh) {
 function render() {
   const q = document.getElementById('q').value.trim().toLowerCase();
   const rows = customers.filter(c => !q || [c.name, c.company, c.phone, c.tin].join(' ').toLowerCase().includes(q));
-  tbody.replaceChildren(...rows.map(c => {
+  tbody.replaceChildren(...pager.apply(rows).map(c => {
     const tr = el('tr', { className: 'row' },
       el('td', {}, c.name), el('td', {}, c.company), el('td', {}, c.phone), el('td', {}, c.tin));
     tr.addEventListener('click', () => toggleDetail(tr, c));
@@ -62,7 +63,7 @@ async function toggleDetail(tr, c) {
   }
 }
 
-document.getElementById('q').addEventListener('input', render);
+document.getElementById('q').addEventListener('input', () => { pager.reset(); render(); });
 document.getElementById('refresh').addEventListener('click', () => load(true));
 load(false);
 </script>
