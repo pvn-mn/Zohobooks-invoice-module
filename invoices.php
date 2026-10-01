@@ -466,6 +466,17 @@ let rowIndex = 0;
 
 const custLabel = c => c.name + (c.tin ? ' — TIN ' + c.tin : '');
 const itemLabel = i => i.name + (i.sku ? ' [' + i.sku + ']' : '');
+
+const MAX_OPTIONS = 3;
+let allCustomers = [], allItems = [];
+
+// Rebuild a datalist with only the first MAX_OPTIONS matches for the typed text
+function fillList(listId, records, labelFn, text, extraFields) {
+  const q = text.trim().toLowerCase();
+  const hits = !q ? records : records.filter(r =>
+    labelFn(r).toLowerCase().includes(q) || extraFields.some(f => (r[f] || '').toLowerCase().includes(q)));
+  $(listId).replaceChildren(...hits.slice(0, MAX_OPTIONS).map(r => el('option', { value: labelFn(r) })));
+}
 const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
 const fmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -478,9 +489,12 @@ async function loadMasterData(refresh) {
       api({ resource: 'customers', ...extra }),
       api({ resource: 'items', ...extra }),
     ]);
+    allCustomers = customers; allItems = items;
     custByLabel.clear(); itemByLabel.clear();
-    $('custlist').replaceChildren(...customers.map(c => { custByLabel.set(custLabel(c), c); return el('option', { value: custLabel(c) }); }));
-    $('itemlist').replaceChildren(...items.map(i => { itemByLabel.set(itemLabel(i), i); return el('option', { value: itemLabel(i) }); }));
+    customers.forEach(c => custByLabel.set(custLabel(c), c)); // full maps, so validation still works
+    items.forEach(i => itemByLabel.set(itemLabel(i), i));
+    fillList('custlist', allCustomers, custLabel, '', ['tin']);
+    fillList('itemlist', allItems, itemLabel, '', ['sku']);
     $('apistatus').textContent = customers.length + ' customers, ' + items.length + ' items from Zoho Books';
   } catch (e) {
     $('apistatus').textContent = 'Could not load customers/items: ' + e.message;
@@ -497,6 +511,7 @@ function renderCard(c) {
 
 $('cust_search').addEventListener('input', async () => {
   const input = $('cust_search');
+  fillList('custlist', allCustomers, custLabel, input.value, ['tin']);
   const c = custByLabel.get(input.value);
   input.classList.toggle('bad', !c && input.value !== '');
   if (!c) { $('customer_id').value = ''; renderCard(null); return; }
@@ -526,6 +541,7 @@ function addRow(l = {}) {
     el('td', {}, q), el('td', {}, price), el('td', { className: 'r' }, amount), el('td', {}, del));
 
   itemSearch.addEventListener('input', () => {
+    fillList('itemlist', allItems, itemLabel, itemSearch.value, ['sku']);
     const it = itemByLabel.get(itemSearch.value);
     itemSearch.classList.toggle('bad', !it && itemSearch.value !== '');
     if (!it) { itemId.value = ''; recalc(); return; }
@@ -582,3 +598,4 @@ renderCard(FORM.customer || null);
 loadMasterData(false);
 </script>
 <?php page_end();
+
