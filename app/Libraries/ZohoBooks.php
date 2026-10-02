@@ -288,7 +288,7 @@ class ZohoBooks
     public function createInvoice(string $customerId, string $poNumber, string $invoiceDate, ?string $supplyDate, array $lineItems, array $extra = []): array
     {
         $payload = self::buildInvoicePayload($customerId, $poNumber, $invoiceDate, $supplyDate, $lineItems, $extra);
-        $result  = $this->client->request('POST', '/invoices', [], $payload);
+        $result  = $this->client->request('POST', '/invoices', ['ignore_auto_number_generation' => 'true'], $payload);
 
         if (! in_array($result['status'], [200, 201], true) || ($result['data']['code'] ?? 0) != 0) {
             throw new RuntimeException('Zoho invoice creation failed: ' . self::error($result));
@@ -303,7 +303,7 @@ class ZohoBooks
     public function updateInvoice(string $invoiceId, string $customerId, string $poNumber, string $invoiceDate, ?string $supplyDate, array $lineItems, array $extra = []): array
     {
         $payload = self::buildInvoicePayload($customerId, $poNumber, $invoiceDate, $supplyDate, $lineItems, $extra);
-        $result  = $this->client->request('PUT', '/invoices/' . rawurlencode($invoiceId), [], $payload);
+        $result  = $this->client->request('PUT', '/invoices/' . rawurlencode($invoiceId), ['ignore_auto_number_generation' => 'true'], $payload);
 
         if ($result['status'] !== 200 || ($result['data']['code'] ?? 0) != 0) {
             throw new RuntimeException('Zoho invoice update failed: ' . self::error($result));

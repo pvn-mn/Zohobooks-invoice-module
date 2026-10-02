@@ -42,8 +42,8 @@ class InvoiceService
                 'description' => $l['description'] !== $l['item_name'] ? $l['description'] : '',
                 'tax_id'      => $taxId ?? '',
             ], $inv['lines']);
-            // our tax invoice number goes into Zoho's notes so the two records can be matched up
-            $extra = ['notes' => 'Tax Invoice No: ' . $inv['invoice_number']];
+            // our tax invoice number becomes Zoho's invoice number
+            $extra = ['invoice_number' => $inv['invoice_number']];
 
             if ($inv['zoho_invoice_id']) {
                 $z = $this->zoho->updateInvoice($inv['zoho_invoice_id'], $inv['customer_id'], $inv['po_number'],
