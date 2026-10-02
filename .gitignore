@@ -1,3 +1,30 @@
-zoho-token.cache.php
+
+# Environment / local configuration
+.env
+env
+
+# macOS Finder metadata
 .DS_Store
-config.php
+
+# Composer dependencies -not in this project ??
+/vendor/
+
+#sql - removed all together
+sql/
+
+# CodeIgniter runtime files - Ignore generated/runtime contents but keep the directory index files
+writable/cache/*
+!writable/cache/index.html
+
+writable/logs/*
+!writable/logs/index.html
+
+writable/session/*
+!writable/session/index.html
+
+writable/debugbar/*
+!writable/debugbar/index.html
+
+# Claude Code / local agent configuration
+.claude/
+
