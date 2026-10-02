@@ -1,6 +1,6 @@
 <?php
 /**
- * Invoice form (new / edit / redisplay after error) + invoice list.
+ * Invoice list + invoice form in a popup (new / edit / redisplay after error).
  *
  * @var array      $form
  * @var array|null $editing
@@ -11,10 +11,18 @@
 ?>
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
-<h1><?= $editing ? 'Edit invoice ' . esc($editing['invoice_number']) : 'New invoice' ?></h1>
-<?php if ($error): ?><div class="msg err"><?= esc($error) ?></div><?php endif; ?>
+<div class="head">
+  <h1>Invoices</h1>
+  <button type="button" id="newinv">+ New invoice</button>
+</div>
 
+<dialog id="invdialog">
 <form method="post" action="<?= site_url('invoices') ?>" id="invform" class="card" autocomplete="off">
+  <div class="head">
+    <h2><?= $editing ? 'Edit invoice ' . esc($editing['invoice_number']) : 'New invoice' ?></h2>
+    <button type="button" class="sec" data-close title="Close">&times;</button>
+  </div>
+  <?php if ($error): ?><div class="msg err"><?= esc($error) ?></div><?php endif; ?>
   <?= csrf_field() ?>
   <input type="hidden" name="id" value="<?= (int) $form['id'] ?>">
   <input type="hidden" name="customer_id" id="customer_id" value="<?= esc($form['customer_id']) ?>">
@@ -50,14 +58,14 @@
 
   <div class="bar" style="margin-top:1rem">
     <button type="submit"><?= $editing ? 'Update &amp; Send' : 'Save &amp; Send' ?></button>
-    <?php if ($editing): ?><a class="btn sec" href="<?= site_url('invoices') ?>">Cancel</a><?php endif; ?>
+    <button type="button" class="sec" data-close>Cancel</button>
     <span class="sp" style="flex:1"></span>
     <span class="muted" id="apistatus"></span>
     <button type="button" class="sec" id="refresh" title="Re-fetch customers and items from Zoho Books">&#8635;</button>
   </div>
 </form>
+</dialog>
 
-<h2>Invoices</h2>
 <div class="bar"><input type="search" id="invq" placeholder="Search invoice no. or customer…"></div>
 <table class="list" id="invlist">
   <thead><tr><th>Tax Invoice No.</th><th>Customer</th><th>Date</th><th class="r">Total (LKR)</th><th>Zoho</th><th></th></tr></thead>
@@ -172,7 +180,7 @@ function addRow(l = {}) {
     price.value = it.rate;
     recalc();
   });
-  del.addEventListener('click', () => { tr.remove(); recalc(); });
+  del.addEventListener('click', () => { tr.remove(); recalc(); dirty = true; });
   tr.addEventListener('input', recalc);
   tr._q = q; tr._price = price; tr._amount = amount;
   tbody.append(tr);
@@ -216,11 +224,28 @@ function renderInvoices() {
 $('invq').addEventListener('input', () => { invPager.reset(); renderInvoices(); });
 renderInvoices();
 
-$('addline').addEventListener('click', () => addRow());
+$('addline').addEventListener('click', () => { addRow(); dirty = true; });
 $('refresh').addEventListener('click', () => loadMasterData(true));
+
+// Form popup. The edit page and a failed save open it straight away; closing those
+// (or discarding typed changes) reloads the plain list so the form starts clean.
+const dlg = $('invdialog');
+const INVOICES_URL = <?= json_encode(site_url('invoices'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
+const OPEN_ON_LOAD = <?= json_encode($editing !== null || $error !== '') ?>;
+let dirty = false;
+$('invform').addEventListener('input', () => { dirty = true; });
+function closeForm() {
+  if (dirty && !confirm('Discard changes?')) return;
+  if (OPEN_ON_LOAD || dirty) location.href = INVOICES_URL;
+  else dlg.close();
+}
+dlg.addEventListener('cancel', e => { e.preventDefault(); closeForm(); });
+dlg.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeForm));
+$('newinv').addEventListener('click', () => dlg.showModal());
 
 renderCard(FORM.customer || null);
 (FORM.lines.length ? FORM.lines : [{}]).forEach(addRow);
+if (OPEN_ON_LOAD) dlg.showModal();
 loadMasterData(false);
 </script>
 <?= $this->endSection() ?>

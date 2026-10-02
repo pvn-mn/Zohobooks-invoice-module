@@ -46,6 +46,11 @@ $nav = ['invoices' => 'Invoices', 'customers' => 'Customers', 'items' => 'Items'
   .b-synced { background: #dcfce7; } .b-failed { background: #fee2e2; } .b-pending { background: #fef3c7; }
   dl.kv { display: grid; grid-template-columns: max-content 1fr; gap: .2rem 1rem; margin: 0; }
   dl.kv dt { color: #666; } dl.kv dd { margin: 0; }
+  .head { display: flex; gap: .75rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .head h1, .head h2 { margin: 0; }
+  dialog { width: min(1000px, 95vw); max-height: 90vh; padding: 0; border: 0; border-radius: 8px; box-sizing: border-box; overflow: auto; }
+  dialog::backdrop { background: rgba(17, 24, 39, .55); }
+  dialog form.card { border: 0; }
 </style>
 <script>
 const API_URL = <?= json_encode(site_url('api'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
