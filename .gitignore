@@ -9,7 +9,7 @@ env
 # Composer dependencies -not in this project ??
 /vendor/
 
-#sql - removed all together
+#sql - re appears by running - after removal
 sql/
 
 # CodeIgniter runtime files - Ignore generated/runtime contents but keep the directory index files

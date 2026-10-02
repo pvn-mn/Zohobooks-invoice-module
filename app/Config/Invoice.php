@@ -70,6 +70,9 @@ class Invoice extends BaseConfig
     public string $supplierName    = '';
     public string $supplierAddress = '';
     public string $supplierPhone   = '';
+
+    public string $supplierEmail = '';
+
     public string $paymentMethod   = '';
     public string $bankAccountName = '';
     public string $bankName        = '';
@@ -77,4 +80,6 @@ class Invoice extends BaseConfig
     public string $bankBranchCode  = '';
     public string $bankAccountNo   = '';
     public string $bankSwift       = '';
+
+    // public string $printedBy = '';
 }
