@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Libraries\ZohoBooks;
 use CodeIgniter\Model;
 use Config\Invoice;
 
@@ -11,7 +12,7 @@ class InvoiceModel extends Model
     protected $returnType    = 'array';
     protected $allowedFields = [
         'invoice_number', 'customer_id', 'customer_name', 'customer_tin', 'customer_address',
-        'customer_phone', 'invoice_date', 'supply_date', 'supply_place', 'po_number', 'our_ref',
+        'customer_phone', 'supplier_snapshot', 'invoice_date', 'supply_date', 'supply_place', 'po_number', 'our_ref',
         'exchange_rate', 'sub_total', 'vat_rate', 'vat_amount', 'total',
         'zoho_invoice_id', 'zoho_invoice_number', 'zoho_total', 'sync_status', 'sync_error',
     ];
@@ -31,6 +32,22 @@ class InvoiceModel extends Model
             ->findAll();
 
         return $inv;
+    }
+
+    /**
+     * The invoice's saved supplier / payment / bank details; any missing field uses the current .env value.
+     */
+    public static function supplierDetails(array $inv): array
+    {
+        $config   = config(Invoice::class);
+        $snapshot = json_decode((string) ($inv['supplier_snapshot'] ?? ''), true);
+        $out      = [];
+
+        foreach (ZohoBooks::SUPPLIER_FIELDS as $field) {
+            $out[$field] = (string) ($snapshot[$field] ?? $config->{$field});
+        }
+
+        return $out;
     }
 
     /**

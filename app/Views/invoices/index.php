@@ -61,7 +61,7 @@
     <button type="button" class="sec" data-close>Cancel</button>
     <span class="sp" style="flex:1"></span>
     <span class="muted" id="apistatus"></span>
-    <button type="button" class="sec" id="refresh" title="Re-fetch customers and items from Zoho Books">&#8635;</button>
+    <button type="button" class="sec" id="refresh" title="Re-fetch customers, items and supplier details from Zoho Books">&#8635;</button>
   </div>
 </form>
 </dialog>
@@ -128,6 +128,16 @@ async function loadMasterData(refresh) {
     $('apistatus').textContent = customers.length + ' customers, ' + items.length + ' items from Zoho Books';
   } catch (e) {
     $('apistatus').textContent = 'Could not load customers/items: ' + e.message;
+    return;
+  }
+  // Supplier details are only re-fetched on a manual refresh; new invoices save the cached copy
+  if (refresh) {
+    try {
+      await api({ resource: 'supplier', refresh: 1 });
+      $('apistatus').textContent += ', supplier details refreshed';
+    } catch (e) {
+      $('apistatus').textContent += ' (supplier details: ' + e.message + ')';
+    }
   }
 }
 

@@ -171,6 +171,10 @@ class InvoiceService
             'vat_amount'       => $vatAmount,
             'total'            => $total,
         ];
+        if (! $id) {
+            // Supplier / payment / bank details are fixed when the invoice is created; edits keep the original
+            $data['supplier_snapshot'] = json_encode($this->zoho->getSupplierDetails(), JSON_UNESCAPED_UNICODE);
+        }
 
         $db = db_connect();
         $db->transBegin();

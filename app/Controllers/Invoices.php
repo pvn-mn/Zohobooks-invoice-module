@@ -66,6 +66,7 @@ class Invoices extends BaseController
             'mismatch' => $mismatch,
             'sent'     => $this->request->getGet('sent') !== null,
             'config'   => config(Invoice::class),
+            'supplier' => InvoiceModel::supplierDetails($inv),
         ]);
     }
 

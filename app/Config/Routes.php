@@ -26,4 +26,5 @@ $routes->group('api', ['filter' => 'auth:json'], static function (RouteCollectio
     $routes->get('customers/(:num)', 'Api::customers/$1');
     $routes->get('items', 'Api::items');
     $routes->get('items/(:num)', 'Api::items/$1');
+    $routes->get('supplier', 'Api::supplier');
 });

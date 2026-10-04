@@ -13,6 +13,13 @@ use RuntimeException;
  */
 class ZohoBooks
 {
+    // Keys of getSupplierDetails() / zb_invoices.supplier_snapshot, named like the Config\Invoice properties
+    public const SUPPLIER_FIELDS = [
+        'supplierTin', 'supplierName', 'supplierAddress', 'supplierPhone', 'supplierEmail',
+        'paymentMethod', 'bankAccountName', 'bankName', 'bankBranch', 'bankBranchCode',
+        'bankAccountNo', 'bankSwift',
+    ];
+
     private bool $itemsRefreshed = false;
 
     public function __construct(
@@ -249,6 +256,83 @@ class ZohoBooks
         $this->cache->putPayload('vat_tax', ['id' => $id]);
 
         return $id;
+    }
+
+    // --- Supplier details (printed on the tax invoice) ------------------------------
+
+    /**
+     * Cached GET of one Zoho object, normalised by $normalise. On failure uses the last
+     * copy; with no copy at all returns null, so the caller falls back to .env.
+     */
+    private function cachedObject(string $key, string $endpoint, string $objectKey, callable $normalise, bool $refresh): ?array
+    {
+        if (! $refresh && ($cached = $this->cache->getPayload($key, $this->config->cacheTtl)) !== null) {
+            return $cached;
+        }
+
+        try {
+            $res = $this->client->request('GET', $endpoint);
+        } catch (Exception) {
+            $res = null;
+        }
+        if ($res === null || ! self::ok($res) || ! is_array($res['data'][$objectKey] ?? null)) {
+            return $this->cache->getPayload($key, null);
+        }
+
+        $out = $normalise($res['data'][$objectKey]);
+        $this->cache->putPayload($key, $out);
+
+        return $out;
+    }
+
+    private static function normOrganization(array $o): array
+    {
+        $a     = $o['address'] ?? [];
+        $parts = [];
+
+        foreach (['street_address1', 'street_address2', 'city', 'state', 'zip', 'country'] as $k) {
+            if (trim((string) ($a[$k] ?? '')) !== '') {
+                $parts[] = trim($a[$k]);
+            }
+        }
+
+        return [
+            'supplierName'    => trim((string) ($o['name'] ?? '')),
+            'supplierPhone'   => trim((string) ($o['phone'] ?? '')),
+            'supplierEmail'   => trim((string) ($o['email'] ?? '')),
+            'supplierTin'     => trim((string) ($o['tax_settings']['tax_reg_no'] ?? '')),
+            'supplierAddress' => implode(', ', $parts),
+        ];
+    }
+
+    private static function normInvoiceSettings(array $s): array
+    {
+        return [
+            'paymentMethod' => trim(str_replace("\r\n", "\n", (string) ($s['notes'] ?? ''))),
+        ];
+    }
+
+    /**
+     * Everything printed in the supplier / payment / bank sections, keyed like the
+     * Config\Invoice properties. Each field comes from Zoho when it has a value,
+     * otherwise from .env. Bank fields are .env-only until Zoho banking access is set up.
+     */
+    public function getSupplierDetails(bool $refresh = false): array
+    {
+        $zoho = array_merge(
+            $this->cachedObject('organization', '/organizations/' . rawurlencode($this->config->zohoOrgId),
+                'organization', self::normOrganization(...), $refresh) ?? [],
+            $this->cachedObject('invoice_settings', '/settings/invoices',
+                'invoice_settings', self::normInvoiceSettings(...), $refresh) ?? [],
+        );
+
+        $out = [];
+
+        foreach (self::SUPPLIER_FIELDS as $field) {
+            $out[$field] = ($zoho[$field] ?? '') !== '' ? $zoho[$field] : (string) $this->config->{$field};
+        }
+
+        return $out;
     }
 
     // --- Invoices ----------------------------------------------------------------

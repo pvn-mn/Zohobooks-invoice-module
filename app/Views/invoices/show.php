@@ -7,6 +7,7 @@
  * @var bool           $mismatch
  * @var bool           $sent
  * @var \Config\Invoice $config
+ * @var array          $supplier  this invoice's saved supplier / payment / bank details
  */
 
 // "Printed By" in the footer shows the supplier email from .env.
@@ -110,14 +111,14 @@ $printedBy = $config->supplierEmail;
 
     <!-- Letterhead -->
     <div class="letterhead">
-      <img class="logo" src="<?= base_url('img/logo.jpeg') ?>" alt="<?= esc($config->supplierName) ?>">
+      <img class="logo" src="<?= base_url('img/logo.jpeg') ?>" alt="<?= esc($supplier['supplierName']) ?>">
       <div class="company">
-        <div class="name"><?= esc($config->supplierName) ?></div>
-        <div><?= esc(preg_replace('/\s*\R\s*/', ', ', trim($config->supplierAddress))) ?></div>
+        <div class="name"><?= esc($supplier['supplierName']) ?></div>
+        <div><?= esc(preg_replace('/\s*\R\s*/', ', ', trim($supplier['supplierAddress']))) ?></div>
         <div>
-          Tel: <?= esc($config->supplierPhone) ?>
-          <?php if ($config->supplierEmail !== ''): ?>
-            &nbsp; Email: <?= esc($config->supplierEmail) ?>
+          Tel: <?= esc($supplier['supplierPhone']) ?>
+          <?php if ($supplier['supplierEmail'] !== ''): ?>
+            &nbsp; Email: <?= esc($supplier['supplierEmail']) ?>
           <?php endif; ?>
         </div>
       </div>
@@ -134,10 +135,10 @@ $printedBy = $config->supplierEmail;
     <!-- Supplier / Purchaser -->
     <div class="row">
       <div class="box">
-        <b>Supplier Tin Number</b>: <?= esc($config->supplierTin) ?><br>
-        <b>Supplier Name</b> : <?= esc($config->supplierName) ?><br>
-        <b>Address</b> : <?= esc(preg_replace('/\s*\R\s*/', ', ', trim($config->supplierAddress))) ?><br>
-        <b>Phone Number</b> : <?= esc($config->supplierPhone) ?>
+        <b>Supplier Tin Number</b>: <?= esc($supplier['supplierTin']) ?><br>
+        <b>Supplier Name</b> : <?= esc($supplier['supplierName']) ?><br>
+        <b>Address</b> : <?= esc(preg_replace('/\s*\R\s*/', ', ', trim($supplier['supplierAddress']))) ?><br>
+        <b>Phone Number</b> : <?= esc($supplier['supplierPhone']) ?>
       </div>
       <div class="box">
         <b>Purchaser Tin Number</b>: <?= esc($inv['customer_tin']) ?><br>
@@ -195,15 +196,15 @@ $printedBy = $config->supplierEmail;
     <!-- Words / payment / bank -->
     <div class="info">
       <div><b>Total Amount in Word :</b> <?= esc(amount_in_words($inv['total'])) ?></div>
-      <div><b>Payment Method : <?= esc($config->paymentMethod) ?></b></div>
+      <div><b>Payment Method : <?= nl2br(esc($supplier['paymentMethod'])) ?></b></div>
       <div>
         <b>Bank Details :</b><br>
-        Account Name - <?= esc($config->bankAccountName) ?><br>
-        Bank - <?= esc($config->bankName) ?><br>
-        Branch - <?= esc($config->bankBranch) ?><br>
-        Bank &amp; Branch Code - <?= esc($config->bankBranchCode) ?><br>
-        Account No - <?= esc($config->bankAccountNo) ?><br>
-        Swift Code - <?= esc($config->bankSwift) ?>
+        Account Name - <?= esc($supplier['bankAccountName']) ?><br>
+        Bank - <?= esc($supplier['bankName']) ?><br>
+        Branch - <?= esc($supplier['bankBranch']) ?><br>
+        Bank &amp; Branch Code - <?= esc($supplier['bankBranchCode']) ?><br>
+        Account No - <?= esc($supplier['bankAccountNo']) ?><br>
+        Swift Code - <?= esc($supplier['bankSwift']) ?>
       </div>
     </div>
 
